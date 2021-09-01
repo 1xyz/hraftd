@@ -10,14 +10,14 @@ import (
 	"os"
 	"os/signal"
 
-	"github.com/otoolep/hraftd/http"
-	"github.com/otoolep/hraftd/store"
+	"github.com/1xyz/hraftd/http"
+	"github.com/1xyz/hraftd/store"
 )
 
 // Command line defaults
 const (
 	DefaultHTTPAddr = ":11000"
-	DefaultRaftAddr = ":12000"
+	DefaultRaftAddr = "127.0.0.1:12000"
 )
 
 // Command line parameters

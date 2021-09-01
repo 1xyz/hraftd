@@ -126,6 +126,7 @@ func (s *Store) Get(key string) (string, error) {
 
 // Set sets the value for the given key.
 func (s *Store) Set(key, value string) error {
+	s.logger.Printf("set key = %s\n", key)
 	if s.raft.State() != raft.Leader {
 		return fmt.Errorf("not leader")
 	}
@@ -242,6 +243,7 @@ func (f *fsm) Restore(rc io.ReadCloser) error {
 	// Set the state from the snapshot, no lock required according to
 	// Hashicorp docs.
 	f.m = o
+	f.logger.Printf("[fsm] [Restore] restored from snapshot %d entries\n", len(f.m))
 	return nil
 }
 
@@ -249,6 +251,7 @@ func (f *fsm) applySet(key, value string) interface{} {
 	f.mu.Lock()
 	defer f.mu.Unlock()
 	f.m[key] = value
+	f.logger.Printf("[fsm] [applySet] key = %s\n", key)
 	return nil
 }
 
