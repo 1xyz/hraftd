@@ -21,11 +21,14 @@ const (
 )
 
 // Command line parameters
-var inmem bool
-var httpAddr string
-var raftAddr string
-var joinAddr string
-var nodeID string
+var (
+	inmem           bool
+	httpAddr        string
+	raftAddr        string
+	joinAddr        string
+	nodeID          string
+	bootstrapNodeID string
+)
 
 func init() {
 	flag.BoolVar(&inmem, "inmem", false, "Use in-memory storage for Raft")
@@ -33,6 +36,7 @@ func init() {
 	flag.StringVar(&raftAddr, "raddr", DefaultRaftAddr, "Set Raft bind address")
 	flag.StringVar(&joinAddr, "join", "", "Set join address, if any")
 	flag.StringVar(&nodeID, "id", "", "Node ID")
+	flag.StringVar(&bootstrapNodeID, "bootstrap-id", "", "Bootstrap Node ID")
 	flag.Usage = func() {
 		fmt.Fprintf(os.Stderr, "Usage: %s [options] <raft-data-path> \n", os.Args[0])
 		flag.PrintDefaults()
@@ -47,13 +51,25 @@ func main() {
 		os.Exit(1)
 	}
 
+	if nodeID == "" {
+		fmt.Fprintf(os.Stderr, "No nodeID is specified")
+		os.Exit(1)
+	}
+	if bootstrapNodeID == "" {
+		fmt.Fprintf(os.Stderr, "no bootstrap nodeID is specified")
+		os.Exit(1)
+	}
+
 	// Ensure Raft storage exists.
 	raftDir := flag.Arg(0)
 	if raftDir == "" {
 		fmt.Fprintf(os.Stderr, "No Raft storage directory specified\n")
 		os.Exit(1)
 	}
-	os.MkdirAll(raftDir, 0700)
+	if err := os.MkdirAll(raftDir, 0700); err != nil {
+		fmt.Fprintf(os.Stderr, "MakedirAll failed with %v\n", err)
+		os.Exit(1)
+	}
 
 	s := store.New(inmem)
 	s.RaftDir = raftDir
@@ -68,10 +84,15 @@ func main() {
 	}
 
 	// If join was specified, make the join request.
-	if joinAddr != "" {
+	if nodeID != bootstrapNodeID {
+		if joinAddr == "" {
+			log.Fatalf("joinAddr is not specified")
+		}
 		if err := join(joinAddr, raftAddr, nodeID); err != nil {
 			log.Fatalf("failed to join node at %s: %s", joinAddr, err.Error())
 		}
+	} else {
+		log.Println("Switching to bootstrap mode. Note bootstrapping is done only once!!")
 	}
 
 	log.Println("hraftd started successfully")
