@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"path/filepath"
 
 	"github.com/1xyz/hraftd/http"
 	"github.com/1xyz/hraftd/store"
@@ -28,6 +29,7 @@ var (
 	joinAddr        string
 	nodeID          string
 	bootstrapNodeID string
+	dataDir         string
 )
 
 func init() {
@@ -37,6 +39,7 @@ func init() {
 	flag.StringVar(&joinAddr, "join", "", "Set join address, if any")
 	flag.StringVar(&nodeID, "id", "", "Node ID")
 	flag.StringVar(&bootstrapNodeID, "bootstrap-id", "", "Bootstrap Node ID")
+	flag.StringVar(&dataDir, "data-dir", "", "Root Data Directory")
 	flag.Usage = func() {
 		fmt.Fprintf(os.Stderr, "Usage: %s [options] <raft-data-path> \n", os.Args[0])
 		flag.PrintDefaults()
@@ -46,11 +49,6 @@ func init() {
 func main() {
 	flag.Parse()
 
-	if flag.NArg() == 0 {
-		fmt.Fprintf(os.Stderr, "No Raft storage directory specified\n")
-		os.Exit(1)
-	}
-
 	if nodeID == "" {
 		fmt.Fprintf(os.Stderr, "No nodeID is specified")
 		os.Exit(1)
@@ -59,9 +57,13 @@ func main() {
 		fmt.Fprintf(os.Stderr, "no bootstrap nodeID is specified")
 		os.Exit(1)
 	}
+	if dataDir == "" {
+		fmt.Fprintf(os.Stderr, "No Raft storage directory specified\n")
+		os.Exit(1)
+	}
 
 	// Ensure Raft storage exists.
-	raftDir := flag.Arg(0)
+	raftDir := filepath.Join(dataDir, nodeID)
 	if raftDir == "" {
 		fmt.Fprintf(os.Stderr, "No Raft storage directory specified\n")
 		os.Exit(1)
