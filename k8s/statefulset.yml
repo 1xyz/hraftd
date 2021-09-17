@@ -1,0 +1,66 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: hraftd
+  namespace: hraft
+  labels:
+    app: hraftd
+spec:
+  serviceName: hraftd
+  podManagementPolicy: "Parallel"
+  replicas: 2
+  selector:
+    matchLabels:
+      app: hraftd
+  template:
+    metadata:
+      labels:
+        app: hraftd
+    spec:
+      terminationGracePeriodSeconds: 30
+      containers:
+      - name: hraftd
+        image: 1xyz/hraftd:main-bddd102
+        imagePullPolicy: Always
+        env:
+          - name: HTTP_ADDR
+            valueFrom:
+              configMapKeyRef:
+                name: hraftd-config
+                key: HTTP_ADDR
+          - name: RAFT_ADDR
+            valueFrom:
+              configMapKeyRef:
+                name: hraftd-config
+                key: RAFT_ADDR
+          - name: BOOTSTRAP_NODE_ID
+            valueFrom:
+              configMapKeyRef:
+                name: hraftd-config
+                key: BOOTSTRAP_NODE_ID
+          - name: DATA_DIR
+            valueFrom:
+              configMapKeyRef:
+                name: hraftd-config
+                key: DATA_DIR
+        command: ["sleep", "1000"]
+        # command:  ["/root/hraftd",
+        #   "-bootstrap-id", "hraft0",
+        #   "-data-dir", "$(DATA_DIR)",
+        #   "-id", "hraft0",
+        #   "-join", "hraft0",
+        #   "-raddr", "RAFT_ADDR",
+        #   "-haddr", "HTTP_ADDR"
+        # ]
+        ports:
+        - containerPort: 11000
+          name: http
+        - containerPort: 21000
+          name: raft-tcp
+        resources:
+          limits:
+            cpu: "2000m"
+            memory: 2Gi
+          requests:
+            cpu: "500m"
+            memory: 1Gi

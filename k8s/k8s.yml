@@ -11,5 +11,25 @@ metadata:
 data:
   BOOTSTRAP_NODE_ID: "node0"
   HTTP_ADDR: ":11000"
-  RAFT_ADDR: ":12000"
+  RAFT_ADDR: "127.0.0.1:12000"
   DATA_DIR: "/root/data"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: hraftd
+  namespace: hraft
+  labels:
+    name: hraftd
+spec:
+  clusterIP: None
+  ports:
+    - name: http
+      port: 11000
+      targetPort: 11000
+    - name: raft-tcp
+      port: 21000
+      targetPort: 21000
+  selector:
+    app: hraftd
+
