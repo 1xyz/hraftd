@@ -20,8 +20,8 @@ spec:
       terminationGracePeriodSeconds: 30
       containers:
       - name: hraftd
-        image: 1xyz/hraftd:main-bddd102
-        imagePullPolicy: Always
+        image: 1xyz/hraftd
+        imagePullPolicy: Never
         env:
           - name: HTTP_ADDR
             valueFrom:

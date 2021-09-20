@@ -6,10 +6,12 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"math/rand"
 	"net/http"
 	"os"
 	"os/signal"
 	"path/filepath"
+	"time"
 
 	"github.com/1xyz/hraftd/http"
 	"github.com/1xyz/hraftd/store"
@@ -102,7 +104,7 @@ func main() {
 	terminate := make(chan os.Signal, 1)
 	signal.Notify(terminate, os.Interrupt)
 	<-terminate
-	log.Println("hraftd exiting")
+	log.Println("hraftd exiting...")
 }
 
 func join(joinAddr, raftAddr, nodeID string) error {
@@ -110,11 +112,23 @@ func join(joinAddr, raftAddr, nodeID string) error {
 	if err != nil {
 		return err
 	}
-	resp, err := http.Post(fmt.Sprintf("http://%s/join", joinAddr), "application-type/json", bytes.NewReader(b))
-	if err != nil {
-		return err
+	for {
+		time.Sleep(interval())
+		log.Println("Request to join...", joinAddr)
+		if resp, err := http.Post(fmt.Sprintf("http://%s/join", joinAddr),
+			"application-type/json", bytes.NewReader(b)); err != nil {
+			log.Printf("http.Post error = %v. Retrying... \n", err)
+			resp.Body.Close()
+		} else {
+			resp.Body.Close()
+			return nil
+		}
 	}
-	defer resp.Body.Close()
+}
 
-	return nil
+func interval() time.Duration  {
+	max := 10
+	min := 3
+	v := rand.Intn(max - min) + min
+	return time.Duration(v) * time.Second
 }
