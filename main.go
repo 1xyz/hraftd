@@ -120,7 +120,6 @@ func join(joinAddr, raftAddr, nodeID string) error {
 		if resp, err := http.Post(fmt.Sprintf("http://%s/join", joinAddr),
 			"application-type/json", bytes.NewReader(b)); err != nil {
 			log.Printf("http.Post error = %v. Retrying... \n", err)
-			resp.Body.Close()
 		} else {
 			resp.Body.Close()
 			return nil

@@ -7,6 +7,9 @@ build:
     gitCommit: {}
   artifacts:
   - image: 1xyz/hraftd
+  local:
+    push: true
+    useDockerCLI: true
 deploy:
   kubectl:
     manifests:

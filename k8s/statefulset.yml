@@ -21,7 +21,7 @@ spec:
       containers:
       - name: hraftd
         image: 1xyz/hraftd
-        imagePullPolicy: Never
+        imagePullPolicy: Always
         env:
           - name: HTTP_PORT
             valueFrom:
