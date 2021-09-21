@@ -78,7 +78,9 @@ func main() {
 	s := store.New(inmem)
 	s.RaftDir = raftDir
 	s.RaftBind = raftAddr
-	if err := s.Open(joinAddr == "", nodeID); err != nil {
+	enableSingle := nodeID == bootstrapNodeID
+	log.Printf("EnableSingle %v\n", enableSingle)
+	if err := s.Open(enableSingle, nodeID); err != nil {
 		log.Fatalf("failed to open store: %s", err.Error())
 	}
 
@@ -88,7 +90,7 @@ func main() {
 	}
 
 	// If join was specified, make the join request.
-	if nodeID != bootstrapNodeID {
+	if !enableSingle {
 		if joinAddr == "" {
 			log.Fatalf("joinAddr is not specified")
 		}

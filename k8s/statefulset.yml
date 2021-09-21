@@ -23,16 +23,16 @@ spec:
         image: 1xyz/hraftd
         imagePullPolicy: Never
         env:
-          - name: HTTP_ADDR
+          - name: HTTP_PORT
             valueFrom:
               configMapKeyRef:
                 name: hraftd-config
-                key: HTTP_ADDR
-          - name: RAFT_ADDR
+                key: HTTP_PORT
+          - name: RAFT_PORT
             valueFrom:
               configMapKeyRef:
                 name: hraftd-config
-                key: RAFT_ADDR
+                key: RAFT_PORT
           - name: BOOTSTRAP_NODE_ID
             valueFrom:
               configMapKeyRef:
@@ -43,19 +43,28 @@ spec:
               configMapKeyRef:
                 name: hraftd-config
                 key: DATA_DIR
-        command: ["sleep", "1000"]
-        # command:  ["/root/hraftd",
-        #   "-bootstrap-id", "hraft0",
-        #   "-data-dir", "$(DATA_DIR)",
-        #   "-id", "hraft0",
-        #   "-join", "hraft0",
-        #   "-raddr", "RAFT_ADDR",
-        #   "-haddr", "HTTP_ADDR"
-        # ]
+          - name: CLUSTER_DNS_SUFFIX
+            valueFrom:
+              configMapKeyRef:
+                name: hraftd-config
+                key: CLUSTER_DNS_SUFFIX
+          - name: NODE_ID
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.name
+        # command: ["sleep", "1000"]
+        command:  ["/root/hraftd",
+          "-bootstrap-id", "$(BOOTSTRAP_NODE_ID)",
+          "-data-dir", "$(DATA_DIR)",
+          "-id", "$(NODE_ID)",
+          "-join", "$(BOOTSTRAP_NODE_ID).$(CLUSTER_DNS_SUFFIX):$(HTTP_PORT)",
+          "-raddr", "$(NODE_ID).$(CLUSTER_DNS_SUFFIX):$(RAFT_PORT)",
+          "-haddr", ":$(HTTP_PORT)"
+        ]
         ports:
         - containerPort: 11000
           name: http
-        - containerPort: 21000
+        - containerPort: 12000
           name: raft-tcp
         resources:
           limits:

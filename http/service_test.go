@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"github.com/1xyz/hraftd/store"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -84,6 +85,10 @@ func (t *testStore) Delete(key string) error {
 
 func (t *testStore) Join(nodeID, addr string) error {
 	return nil
+}
+
+func (t *testStore) GetInfo() (*store.StoreInfo, error)  {
+	return nil, nil
 }
 
 func doGet(t *testing.T, url, key string) string {

@@ -9,10 +9,11 @@ metadata:
   name: hraftd-config
   namespace: hraft
 data:
-  BOOTSTRAP_NODE_ID: "node0"
-  HTTP_ADDR: ":11000"
-  RAFT_ADDR: "127.0.0.1:12000"
+  BOOTSTRAP_NODE_ID: "hraftd-0"
+  HTTP_PORT: "11000"
+  RAFT_PORT: "12000"
   DATA_DIR: "/root/data"
+  CLUSTER_DNS_SUFFIX: "hraftd.hraft.svc.cluster.local"
 ---
 apiVersion: v1
 kind: Service
@@ -28,8 +29,8 @@ spec:
       port: 11000
       targetPort: 11000
     - name: raft-tcp
-      port: 21000
-      targetPort: 21000
+      port: 12000
+      targetPort: 12000
   selector:
     app: hraftd
 

@@ -4,6 +4,7 @@ package httpd
 
 import (
 	"encoding/json"
+	"github.com/1xyz/hraftd/store"
 	"io"
 	"log"
 	"net"
@@ -24,6 +25,9 @@ type Store interface {
 
 	// Join joins the node, identitifed by nodeID and reachable at addr, to the cluster.
 	Join(nodeID string, addr string) error
+
+	// GetInfo returns the information of raft store
+	GetInfo() (*store.StoreInfo, error)
 }
 
 // Service provides HTTP service.
@@ -78,9 +82,37 @@ func (s *Service) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		s.handleKeyRequest(w, r)
 	} else if r.URL.Path == "/join" {
 		s.handleJoin(w, r)
+	} else if r.URL.Path == "/info" {
+		s.handleGetInfo(w, r)
 	} else {
 		w.WriteHeader(http.StatusNotFound)
 	}
+}
+
+func (s *Service) handleGetInfo(w http.ResponseWriter, r *http.Request)  {
+	if r.Method != "GET" {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	resp, err := s.store.GetInfo()
+	if err != nil {
+		log.Printf("GetInfo failed %v\n", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	b, err := json.Marshal(resp)
+	if err != nil {
+		log.Printf("Marshal failed %v\n", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	log.Println("info -- ", string(b))
+	//w.WriteHeader(http.StatusOK)
+	io.WriteString(w, string(b))
+	return
 }
 
 func (s *Service) handleJoin(w http.ResponseWriter, r *http.Request) {

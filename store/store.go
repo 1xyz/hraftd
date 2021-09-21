@@ -47,6 +47,14 @@ type Store struct {
 	logger *log.Logger
 }
 
+type StoreInfo struct {
+	// Leader indicates which raft addr is the leader
+	Leader string `json:"leader"`
+
+	// State indicates the current state of the node
+	State string `json:"state"`
+}
+
 // New returns a new Store.
 func New(inmem bool) *Store {
 	return &Store{
@@ -199,6 +207,16 @@ func (s *Store) Join(nodeID, addr string) error {
 	}
 	s.logger.Printf("node %s at %s joined successfully", nodeID, addr)
 	return nil
+}
+
+func (s *Store) GetInfo() (*StoreInfo, error) {
+	ldr := s.raft.Leader()
+	state := s.raft.State().String()
+
+	return &StoreInfo{
+		Leader: string(ldr),
+		State:  state,
+	}, nil
 }
 
 type fsm Store

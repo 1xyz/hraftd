@@ -1,0 +1,14 @@
+apiVersion: skaffold/v2beta23
+kind: Config
+metadata:
+  name: hraftd
+build:
+  tagPolicy:
+    gitCommit: {}
+  artifacts:
+  - image: 1xyz/hraftd
+deploy:
+  kubectl:
+    manifests:
+    - ./k8s/k8s.yml
+    - ./k8s/statefulset.yml
